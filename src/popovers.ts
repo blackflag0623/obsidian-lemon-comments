@@ -26,6 +26,9 @@ interface HoverPopoverOptions {
   document: Document;
   sourcePath: string;
   markdown: string;
+  popupWidth: number;
+  popupHeight: number;
+  autoFitHeight: boolean;
   getAnchorRect: () => DOMRect;
   onPointerEnter: () => void;
   onPointerLeave: () => void;
@@ -429,7 +432,7 @@ export class CommentEditorPopover extends Component {
       return;
     }
 
-    this.placement = positionEditorElement(
+    this.placement = positionSizedFloatingElement(
       root,
       this.options.getAnchorRect(),
       win,
@@ -442,6 +445,7 @@ export class CommentEditorPopover extends Component {
 export class CommentHoverPopover extends Component {
   private rootEl: HTMLElement | null = null;
   private markdownComponent: Component | null = null;
+  private placement: FloatingPlacement | null = null;
 
   constructor(private readonly options: HoverPopoverOptions) {
     super();
@@ -453,6 +457,14 @@ export class CommentHoverPopover extends Component {
     const root = doc.createElement("div");
     root.className =
       "reading-comments-ui reading-comment-hover reading-comments-floating";
+    root.toggleClass(
+      "is-auto-fit-height",
+      this.options.autoFitHeight
+    );
+    root.style.width = `${this.options.popupWidth}px`;
+    root.style.height = this.options.autoFitHeight
+      ? "auto"
+      : `${this.options.popupHeight}px`;
     root.setAttribute("role", "tooltip");
 
     const content = doc.createElement("div");
@@ -481,7 +493,23 @@ export class CommentHoverPopover extends Component {
     this.registerDomEvent(root, "pointerleave", this.options.onPointerLeave);
     this.registerDomEvent(editButton, "click", this.options.onEdit);
     this.registerDomEvent(win, "resize", () => this.position());
-    this.registerDomEvent(doc, "scroll", () => this.position(), true);
+    this.registerDomEvent(
+      doc,
+      "scroll",
+      (event) => {
+        const target = event.target;
+        if (
+          target !== null &&
+          this.rootEl !== null &&
+          this.rootEl.contains(target as Node)
+        ) {
+          return;
+        }
+
+        this.position();
+      },
+      true
+    );
 
     const component = new Component();
     component.load();
@@ -507,6 +535,7 @@ export class CommentHoverPopover extends Component {
     this.markdownComponent = null;
     this.rootEl?.remove();
     this.rootEl = null;
+    this.placement = null;
   }
 
   private position(): void {
@@ -516,7 +545,13 @@ export class CommentHoverPopover extends Component {
       return;
     }
 
-    positionFloatingElement(root, this.options.getAnchorRect(), win, 8);
+    this.placement = positionSizedFloatingElement(
+      root,
+      this.options.getAnchorRect(),
+      win,
+      8,
+      this.placement
+    );
   }
 }
 
@@ -542,7 +577,7 @@ function positionFloatingElement(
   element.style.top = `${Math.max(margin, top)}px`;
 }
 
-function positionEditorElement(
+function positionSizedFloatingElement(
   element: HTMLElement,
   anchor: DOMRect,
   win: Window,

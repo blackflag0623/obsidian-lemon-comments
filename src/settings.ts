@@ -50,7 +50,7 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("评论弹窗默认宽度")
-      .setDesc("评论编辑弹窗的默认宽度，单位为像素。")
+      .setDesc("新增、编辑及悬停阅读评论弹窗的默认宽度，单位为像素。")
       .addSlider((slider) =>
         slider
           .setLimits(300, 900, 10)
@@ -64,7 +64,7 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("评论弹窗默认高度")
-      .setDesc("固定高度模式下的弹窗高度，单位为像素。")
+      .setDesc("固定高度模式下，所有评论弹窗的高度，单位为像素。")
       .addSlider((slider) =>
         slider
           .setLimits(240, 900, 10)
@@ -79,7 +79,7 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("高度自动适应内容")
       .setDesc(
-        "开启后忽略默认高度，输入区和 Markdown 预览会随内容自动伸缩；超过视口时才滚动整个弹窗。"
+        "开启后忽略默认高度，新增、编辑和阅读弹窗均随内容自动伸缩；超过视口时才滚动整个弹窗。"
       )
       .addToggle((toggle) =>
         toggle

@@ -176,15 +176,27 @@
 }
 
 .reading-comment-hover {
+  display: flex;
+  flex-direction: column;
   max-height: min(420px, calc(100vh - 20px));
   overflow: auto;
+  overscroll-behavior: contain;
   padding: var(--size-4-3);
   width: min(360px, calc(100vw - 20px));
 }
 
 .reading-comment-hover__content {
+  flex: 1 1 auto;
   max-height: 330px;
   overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.reading-comment-hover.is-auto-fit-height
+  .reading-comment-hover__content {
+  flex: none;
+  max-height: none;
+  overflow: visible;
 }
 
 .reading-comment-hover__footer {
