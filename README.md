@@ -1,5 +1,7 @@
 # Lemon Comments
 
+[中文](#lemon-comments) · [English](#lemon-comments-english)
+
 为 Obsidian 阅读模式添加轻量、非侵入式的 Markdown 文本评论。
 
 选中文字后，Lemon Comments 只显示一个迷你工具栏，不会抢走原生选区；你仍然可以复制文字、打开右键菜单或继续调整选区。点击评论图标后，才会打开评论编辑器。
@@ -73,5 +75,85 @@ npm run build
 ```
 
 ## 许可证
+
+[MIT](LICENSE)
+
+---
+
+# Lemon Comments (English)
+
+Add lightweight, non-intrusive Markdown comments to text in Obsidian Reading view.
+
+After you select text, Lemon Comments displays a small toolbar without taking focus away from the native selection. You can still copy the text, open the context menu, or adjust the selection. The comment editor opens only after you select the comment button.
+
+![Add a comment from the text selection toolbar](assets/add-comment.png)
+
+After you save a comment, the selected text receives a rounded lemon-green highlight. The comment popup appears only while you hover over the highlighted text, and its content is rendered with Obsidian's native Markdown renderer.
+
+![View a rendered Markdown comment by hovering over highlighted text](assets/markdown-comment-popup.png)
+
+## Features
+
+- A Reading view selection toolbar that preserves native copying, context menus, and selection adjustment.
+- Native Obsidian Markdown rendering for headings, lists, code blocks, links, and more.
+- `Enter` to save, `Shift+Enter` for a new line, and `Esc` to cancel.
+- Automatic saving when you click outside the editor.
+- Hover over highlighted text to read a comment; click the highlight to edit it.
+- Rounded lemon-green highlights with a configurable color.
+- Shared configurable width, height, and content-aware sizing for create, edit, and hover popups.
+- Touch interaction and keyboard accessibility.
+- Automatic comment-data migration when a note is renamed.
+- Text and surrounding-context anchors that relocate comments after small note edits.
+- A Command palette action for managing, editing, or deleting comments in the current note.
+
+## Data storage
+
+Comments are stored in the plugin's `data.json`. Lemon Comments does not insert HTML, markers, or hidden syntax into your Markdown notes.
+
+Your source notes remain clean. To use the same comments on multiple devices, sync the Obsidian plugin data as well as your notes.
+
+## Installation
+
+Manual installation:
+
+1. Download or clone this repository.
+2. Place it at `.obsidian/plugins/lemon-comments/` inside your Vault.
+3. Make sure the directory contains `main.js`, `manifest.json`, and `styles.css`.
+4. Enable **Lemon Comments** under **Settings → Community plugins** in Obsidian.
+
+Lemon Comments requires Obsidian 1.4.0 or later.
+
+## Settings
+
+Under **Settings → Lemon Comments**, you can configure:
+
+- Highlight color
+- Hover delay
+- Default popup width
+- Default popup height
+- Content-aware automatic height
+
+When automatic height is enabled, create, edit, and hover popups expand or shrink with their content. The entire popup scrolls only when its content exceeds the available viewport.
+
+## Current limitations
+
+- Comments can only be created and displayed in Reading view.
+- Embedded content, code blocks, and formulas cannot currently be commented.
+- A new comment selection cannot overlap an existing comment.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+## License
 
 [MIT](LICENSE)
