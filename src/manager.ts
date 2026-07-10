@@ -95,7 +95,7 @@ export class CommentManagerModal extends Modal {
 
     editButton.addEventListener("click", () => {
       const rect = row.getBoundingClientRect();
-      const win = row.ownerDocument.defaultView ?? window;
+      const win = row.ownerDocument.defaultView ?? activeWindow;
       this.close();
       win.setTimeout(() => {
         this.readingComments.openCommentEditorById(

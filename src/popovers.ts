@@ -1,14 +1,14 @@
 import { App, Component, MarkdownRenderer, setIcon } from "obsidian";
 
 interface SelectionToolbarOptions {
-  document: Document;
+  doc: Document;
   getAnchorRect: () => DOMRect;
   onAddComment: () => void;
 }
 
 interface EditorPopoverOptions {
   app: App;
-  document: Document;
+  doc: Document;
   sourcePath: string;
   initialValue: string;
   isEditing: boolean;
@@ -23,7 +23,7 @@ interface EditorPopoverOptions {
 
 interface HoverPopoverOptions {
   app: App;
-  document: Document;
+  doc: Document;
   sourcePath: string;
   markdown: string;
   popupWidth: number;
@@ -46,8 +46,8 @@ export class SelectionToolbarPopover extends Component {
   }
 
   onload(): void {
-    const doc = this.options.document;
-    const win = doc.defaultView ?? window;
+    const doc = this.options.doc;
+    const win = doc.defaultView ?? activeWindow;
     const root = doc.createElement("div");
     root.className =
       "reading-comments-ui reading-comment-selection-toolbar reading-comments-floating";
@@ -110,7 +110,7 @@ export class SelectionToolbarPopover extends Component {
   }
 
   onunload(): void {
-    const win = this.options.document.defaultView ?? window;
+    const win = this.options.doc.defaultView ?? activeWindow;
     if (this.outsideListenerTimer !== null) {
       win.clearTimeout(this.outsideListenerTimer);
       this.outsideListenerTimer = null;
@@ -128,7 +128,7 @@ export class SelectionToolbarPopover extends Component {
     positionFloatingElement(
       this.rootEl,
       this.options.getAnchorRect(),
-      this.options.document.defaultView ?? window,
+      this.options.doc.defaultView ?? activeWindow,
       6
     );
   }
@@ -149,8 +149,8 @@ export class CommentEditorPopover extends Component {
   }
 
   onload(): void {
-    const doc = this.options.document;
-    const win = doc.defaultView ?? window;
+    const doc = this.options.doc;
+    const win = doc.defaultView ?? activeWindow;
     const root = doc.createElement("div");
     root.className =
       "reading-comments-ui reading-comment-editor reading-comments-floating";
@@ -158,10 +158,12 @@ export class CommentEditorPopover extends Component {
       "is-auto-fit-height",
       this.options.autoFitHeight
     );
-    root.style.width = `${this.options.popupWidth}px`;
-    root.style.height = this.options.autoFitHeight
-      ? "auto"
-      : `${this.options.popupHeight}px`;
+    root.setCssStyles({
+      width: `${this.options.popupWidth}px`,
+      height: this.options.autoFitHeight
+        ? "auto"
+        : `${this.options.popupHeight}px`
+    });
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-label", this.options.isEditing ? "编辑评论" : "新增评论");
 
@@ -302,7 +304,7 @@ export class CommentEditorPopover extends Component {
   }
 
   onunload(): void {
-    const win = this.options.document.defaultView ?? window;
+    const win = this.options.doc.defaultView ?? activeWindow;
     if (this.previewTimer !== null) {
       win.clearTimeout(this.previewTimer);
       this.previewTimer = null;
@@ -322,7 +324,7 @@ export class CommentEditorPopover extends Component {
   }
 
   private queuePreview(): void {
-    const win = this.options.document.defaultView ?? window;
+    const win = this.options.doc.defaultView ?? activeWindow;
     if (this.previewTimer !== null) {
       win.clearTimeout(this.previewTimer);
     }
@@ -338,8 +340,10 @@ export class CommentEditorPopover extends Component {
       return;
     }
 
-    textarea.style.height = "auto";
-    textarea.style.height = `${Math.max(96, textarea.scrollHeight)}px`;
+    textarea.setCssStyles({ height: "auto" });
+    textarea.setCssStyles({
+      height: `${Math.max(96, textarea.scrollHeight)}px`
+    });
   }
 
   private async renderPreview(): Promise<void> {
@@ -427,7 +431,7 @@ export class CommentEditorPopover extends Component {
 
   private position(): void {
     const root = this.rootEl;
-    const win = this.options.document.defaultView ?? window;
+    const win = this.options.doc.defaultView ?? activeWindow;
     if (root === null) {
       return;
     }
@@ -452,8 +456,8 @@ export class CommentHoverPopover extends Component {
   }
 
   onload(): void {
-    const doc = this.options.document;
-    const win = doc.defaultView ?? window;
+    const doc = this.options.doc;
+    const win = doc.defaultView ?? activeWindow;
     const root = doc.createElement("div");
     root.className =
       "reading-comments-ui reading-comment-hover reading-comments-floating";
@@ -461,10 +465,12 @@ export class CommentHoverPopover extends Component {
       "is-auto-fit-height",
       this.options.autoFitHeight
     );
-    root.style.width = `${this.options.popupWidth}px`;
-    root.style.height = this.options.autoFitHeight
-      ? "auto"
-      : `${this.options.popupHeight}px`;
+    root.setCssStyles({
+      width: `${this.options.popupWidth}px`,
+      height: this.options.autoFitHeight
+        ? "auto"
+        : `${this.options.popupHeight}px`
+    });
     root.setAttribute("role", "tooltip");
 
     const content = doc.createElement("div");
@@ -540,7 +546,7 @@ export class CommentHoverPopover extends Component {
 
   private position(): void {
     const root = this.rootEl;
-    const win = this.options.document.defaultView ?? window;
+    const win = this.options.doc.defaultView ?? activeWindow;
     if (root === null) {
       return;
     }
@@ -573,8 +579,10 @@ function positionFloatingElement(
     top = anchor.top - panel.height - gap;
   }
 
-  element.style.left = `${Math.max(margin, left)}px`;
-  element.style.top = `${Math.max(margin, top)}px`;
+  element.setCssStyles({
+    left: `${Math.max(margin, left)}px`,
+    top: `${Math.max(margin, top)}px`
+  });
 }
 
 function positionSizedFloatingElement(
@@ -599,8 +607,10 @@ function positionSizedFloatingElement(
   const availableHeight =
     placement === "below" ? availableBelow : availableAbove;
 
-  element.style.maxHeight = `${Math.max(96, availableHeight)}px`;
-  element.style.overflowY = "auto";
+  element.setCssStyles({
+    maxHeight: `${Math.max(96, availableHeight)}px`,
+    overflowY: "auto"
+  });
 
   const panel = element.getBoundingClientRect();
   let left = anchor.left;
@@ -614,7 +624,9 @@ function positionSizedFloatingElement(
   }
   top = Math.min(top, win.innerHeight - panel.height - margin);
 
-  element.style.left = `${Math.max(margin, left)}px`;
-  element.style.top = `${Math.max(margin, top)}px`;
+  element.setCssStyles({
+    left: `${Math.max(margin, left)}px`,
+    top: `${Math.max(margin, top)}px`
+  });
   return placement;
 }

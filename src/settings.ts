@@ -41,7 +41,6 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
         slider
           .setLimits(0, 800, 20)
           .setValue(this.readingComments.pluginSettings.hoverDelay)
-          .setDynamicTooltip()
           .onChange(async (value) => {
             this.readingComments.pluginSettings.hoverDelay = value;
             await this.readingComments.saveSettings();
@@ -55,7 +54,6 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
         slider
           .setLimits(300, 900, 10)
           .setValue(this.readingComments.pluginSettings.popupWidth)
-          .setDynamicTooltip()
           .onChange(async (value) => {
             this.readingComments.pluginSettings.popupWidth = value;
             await this.readingComments.saveSettings();
@@ -69,7 +67,6 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
         slider
           .setLimits(240, 900, 10)
           .setValue(this.readingComments.pluginSettings.popupHeight)
-          .setDynamicTooltip()
           .onChange(async (value) => {
             this.readingComments.pluginSettings.popupHeight = value;
             await this.readingComments.saveSettings();

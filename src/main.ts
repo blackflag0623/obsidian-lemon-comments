@@ -63,10 +63,7 @@ export default class ReadingCommentsPlugin extends Plugin {
   async onload(): Promise<void> {
     this.data = normalizePluginData(await this.loadData());
     this.addSettingTab(new ReadingCommentsSettingTab(this.app, this));
-    this.attachSelectionListeners(document);
-    if (typeof activeDocument !== "undefined") {
-      this.attachSelectionListeners(activeDocument);
-    }
+    this.attachSelectionListeners(activeDocument);
 
     this.registerMarkdownPostProcessor(
       (element: HTMLElement, context: MarkdownPostProcessorContext) => {
@@ -84,14 +81,14 @@ export default class ReadingCommentsPlugin extends Plugin {
     );
 
     this.registerEvent(
-      this.app.workspace.on("window-open", (_workspaceWindow, win) => {
-        this.attachSelectionListeners(win.document);
-        this.applySettingsToDocument(win.document);
+      this.app.workspace.on("window-open", (workspaceWindow) => {
+        this.attachSelectionListeners(workspaceWindow.doc);
+        this.applySettingsToDocument(workspaceWindow.doc);
       })
     );
     this.registerEvent(
-      this.app.workspace.on("window-close", (_workspaceWindow, win) => {
-        this.detachSelectionListeners(win.document);
+      this.app.workspace.on("window-close", (workspaceWindow) => {
+        this.detachSelectionListeners(workspaceWindow.doc);
       })
     );
     this.registerEvent(
@@ -135,7 +132,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       }
     });
 
-    this.applySettingsToDocument(document);
+    this.applySettingsToDocument(activeDocument);
     this.refreshAllReadingViews();
   }
 
@@ -149,12 +146,12 @@ export default class ReadingCommentsPlugin extends Plugin {
     this.controllers.clear();
 
     for (const [root, frame] of this.renderFrames) {
-      (root.ownerDocument.defaultView ?? window).cancelAnimationFrame(frame);
+      (root.ownerDocument.defaultView ?? activeWindow).cancelAnimationFrame(frame);
     }
     this.renderFrames.clear();
 
     for (const doc of this.documentControllers.keys()) {
-      doc.body.style.removeProperty("--reading-comments-color");
+      doc.body.setCssProps({ "--reading-comments-color": "" });
     }
     for (const controller of this.documentControllers.values()) {
       this.removeChild(controller);
@@ -188,7 +185,7 @@ export default class ReadingCommentsPlugin extends Plugin {
     sourcePath: string,
     commentId: string,
     rect: DOMRect,
-    doc: Document = document
+    doc: Document = activeDocument
   ): void {
     const comment = this.findComment(sourcePath, commentId);
     if (comment === null) {
@@ -257,7 +254,7 @@ export default class ReadingCommentsPlugin extends Plugin {
     }
 
     this.cancelHoverOpen();
-    const win = target.ownerDocument.defaultView ?? window;
+    const win = target.ownerDocument.defaultView ?? activeWindow;
     const open = () => {
       this.hoverOpenTimer = null;
       this.hoverOpenWindow = null;
@@ -278,8 +275,8 @@ export default class ReadingCommentsPlugin extends Plugin {
   queueHoverClose(): void {
     this.cancelHoverOpen();
     this.cancelHoverClose();
-    const doc = this.hoverSpans[0]?.ownerDocument ?? document;
-    const win = doc.defaultView ?? window;
+    const doc = this.hoverSpans[0]?.ownerDocument ?? activeDocument;
+    const win = doc.defaultView ?? activeWindow;
     this.hoverCloseWindow = win;
     this.hoverCloseTimer = win.setTimeout(() => {
       this.hoverCloseTimer = null;
@@ -293,7 +290,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       return;
     }
 
-    (this.hoverCloseWindow ?? window).clearTimeout(this.hoverCloseTimer);
+    (this.hoverCloseWindow ?? activeWindow).clearTimeout(this.hoverCloseTimer);
     this.hoverCloseTimer = null;
     this.hoverCloseWindow = null;
   }
@@ -310,7 +307,7 @@ export default class ReadingCommentsPlugin extends Plugin {
 
     const editor = new CommentEditorPopover({
       app: this.app,
-      document: doc,
+      doc,
       sourcePath,
       initialValue: comment.body,
       isEditing: true,
@@ -353,7 +350,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       return;
     }
 
-    doc.body.style.removeProperty("--reading-comments-color");
+    doc.body.setCssProps({ "--reading-comments-color": "" });
     this.closeSelectionToolbarForDocument(doc);
     this.removeChild(controller);
     this.documentControllers.delete(doc);
@@ -432,7 +429,7 @@ export default class ReadingCommentsPlugin extends Plugin {
     this.closeHover();
     this.closeSelectionToolbar();
     const toolbar = new SelectionToolbarPopover({
-      document: doc,
+      doc,
       getAnchorRect: () => getRangeEndRect(selectionRange),
       onAddComment: () => {
         this.closeSelectionToolbar();
@@ -462,7 +459,7 @@ export default class ReadingCommentsPlugin extends Plugin {
     this.closeEditor();
     const editor = new CommentEditorPopover({
       app: this.app,
-      document: doc,
+      doc,
       sourcePath,
       initialValue: "",
       isEditing: false,
@@ -592,7 +589,7 @@ export default class ReadingCommentsPlugin extends Plugin {
 
     const hover = new CommentHoverPopover({
       app: this.app,
-      document: target.ownerDocument,
+      doc: target.ownerDocument,
       sourcePath,
       markdown: comment.body,
       popupWidth: this.pluginSettings.popupWidth,
@@ -663,14 +660,14 @@ export default class ReadingCommentsPlugin extends Plugin {
       return;
     }
 
-    (this.hoverOpenWindow ?? window).clearTimeout(this.hoverOpenTimer);
+    (this.hoverOpenWindow ?? activeWindow).clearTimeout(this.hoverOpenTimer);
     this.hoverOpenTimer = null;
     this.hoverOpenWindow = null;
   }
 
   private scheduleRootRender(root: HTMLElement, sourcePath: string): void {
     const existing = this.renderFrames.get(root);
-    const win = root.ownerDocument.defaultView ?? window;
+    const win = root.ownerDocument.defaultView ?? activeWindow;
     if (existing !== undefined) {
       win.cancelAnimationFrame(existing);
     }
@@ -751,10 +748,9 @@ export default class ReadingCommentsPlugin extends Plugin {
 
   private applySettingsToDocument(doc: Document): void {
     this.attachSelectionListeners(doc);
-    doc.body.style.setProperty(
-      "--reading-comments-color",
-      this.pluginSettings.highlightColor
-    );
+    doc.body.setCssProps({
+      "--reading-comments-color": this.pluginSettings.highlightColor
+    });
   }
 
   private clearDocumentSelection(): void {
@@ -957,25 +953,28 @@ class DocumentSelectionController extends Component {
         return;
       }
 
-      (this.doc.defaultView ?? window).setTimeout(this.handleSelection, 0);
+      (this.doc.defaultView ?? activeWindow).setTimeout(
+        this.handleSelection,
+        0
+      );
     });
     this.registerDomEvent(this.doc, "keyup", (event) => {
       if (
         event.shiftKey &&
         ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
       ) {
-        (this.doc.defaultView ?? window).setTimeout(this.handleSelection, 0);
+        (this.doc.defaultView ?? activeWindow).setTimeout(
+          this.handleSelection,
+          0
+        );
       }
     });
   }
 }
 
 function createId(): string {
-  if (
-    typeof globalThis.crypto !== "undefined" &&
-    typeof globalThis.crypto.randomUUID === "function"
-  ) {
-    return globalThis.crypto.randomUUID();
+  if (typeof activeWindow.crypto.randomUUID === "function") {
+    return activeWindow.crypto.randomUUID();
   }
 
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
