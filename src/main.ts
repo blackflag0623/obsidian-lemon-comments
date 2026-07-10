@@ -170,7 +170,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       }
       this.refreshAllReadingViews();
     } catch (error) {
-      console.error("Reading Comments: failed to save settings", error);
+      console.error("Lemon Comments: failed to save settings", error);
       new Notice("阅读评论设置保存失败，请查看控制台。");
     }
   }
@@ -225,7 +225,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       new Notice("评论已删除。");
       return true;
     } catch (error) {
-      console.error("Reading Comments: failed to delete comment", error);
+      console.error("Lemon Comments: failed to delete comment", error);
       const restored = this.data.commentsByPath[sourcePath] ?? [];
       if (removed !== undefined) {
         restored.splice(index, 0, removed);
@@ -523,7 +523,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       new Notice("评论已添加。");
       return true;
     } catch (error) {
-      console.error("Reading Comments: failed to create comment", error);
+      console.error("Lemon Comments: failed to create comment", error);
       const index = comments.indexOf(comment);
       if (index !== -1) {
         comments.splice(index, 1);
@@ -558,7 +558,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       new Notice("评论已更新。");
       return true;
     } catch (error) {
-      console.error("Reading Comments: failed to update comment", error);
+      console.error("Lemon Comments: failed to update comment", error);
       comment.body = previousBody;
       comment.updatedAt = previousUpdatedAt;
       new Notice("评论更新失败，请查看控制台。");
@@ -784,7 +784,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       this.locationState.delete(oldPath);
       this.refreshPath(file.path);
     } catch (error) {
-      console.error("Reading Comments: failed to migrate renamed file", error);
+      console.error("Lemon Comments: failed to migrate renamed file", error);
       this.data.commentsByPath[oldPath] = comments;
       if (previousAtDestination === undefined) {
         delete this.data.commentsByPath[file.path];
@@ -810,7 +810,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       await this.saveData(this.data);
       this.locationState.delete(file.path);
     } catch (error) {
-      console.error("Reading Comments: failed to remove deleted file data", error);
+      console.error("Lemon Comments: failed to remove deleted file data", error);
       this.data.commentsByPath[file.path] = comments;
       new Notice("文件已删除，但其阅读评论数据清理失败。");
     }

@@ -1,6 +1,6 @@
 {
-  "name": "obsidian-reading-comments",
-  "version": "1.1.1",
+  "name": "obsidian-lemon-comments",
+  "version": "1.2.0",
   "description": "Inline Markdown comments for Obsidian Reading view.",
   "main": "main.js",
   "type": "module",

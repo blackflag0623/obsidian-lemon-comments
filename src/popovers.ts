@@ -374,7 +374,7 @@ export class CommentEditorPopover extends Component {
         component
       );
     } catch (error) {
-      console.error("Reading Comments: Markdown preview failed", error);
+      console.error("Lemon Comments: Markdown preview failed", error);
       preview.empty();
       preview.setText("Markdown 预览渲染失败，请检查评论内容。");
     }
@@ -521,7 +521,7 @@ export class CommentHoverPopover extends Component {
       this.options.sourcePath,
       component
     ).catch((error) => {
-      console.error("Reading Comments: hover Markdown render failed", error);
+      console.error("Lemon Comments: hover Markdown render failed", error);
       content.empty();
       content.setText("评论渲染失败。");
     });

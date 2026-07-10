@@ -88,7 +88,7 @@ export class CommentManagerModal extends Modal {
       this.sourcePath,
       component
     ).catch((error) => {
-      console.error("Reading Comments: manager Markdown render failed", error);
+      console.error("Lemon Comments: manager Markdown render failed", error);
       markdown.empty();
       markdown.setText("评论渲染失败。");
     });

@@ -1,8 +1,8 @@
-# Reading Comments
+# Lemon Comments
 
 为 Obsidian 阅读模式添加轻量、非侵入式的 Markdown 文本评论。
 
-选中文字后，Reading Comments 只显示一个迷你工具栏，不会抢走原生选区；你仍然可以复制文字、打开右键菜单或继续调整选区。点击评论图标后，才会打开评论编辑器。
+选中文字后，Lemon Comments 只显示一个迷你工具栏，不会抢走原生选区；你仍然可以复制文字、打开右键菜单或继续调整选区。点击评论图标后，才会打开评论编辑器。
 
 ![选中文字后显示添加评论工具栏](assets/add-comment.png)
 
@@ -35,15 +35,15 @@
 当前可手动安装：
 
 1. 下载或克隆本仓库。
-2. 将仓库放到 Vault 的 `.obsidian/plugins/reading-comments/`。
+2. 将仓库放到 Vault 的 `.obsidian/plugins/lemon-comments/`。
 3. 确认目录中包含 `main.js`、`manifest.json` 和 `styles.css`。
-4. 在 Obsidian 的“设置 → 第三方插件”中启用 **Reading Comments**。
+4. 在 Obsidian 的“设置 → 第三方插件”中启用 **Lemon Comments**。
 
 要求 Obsidian 1.4.0 或更高版本。
 
 ## 设置
 
-在“设置 → Reading Comments”中可以调整：
+在“设置 → Lemon Comments”中可以调整：
 
 - 高亮颜色
 - 悬停显示延迟
