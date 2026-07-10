@@ -71,3 +71,7 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## 许可证
+
+[MIT](LICENSE)
