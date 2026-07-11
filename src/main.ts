@@ -595,6 +595,10 @@ export default class ReadingCommentsPlugin extends Plugin {
       popupWidth: this.pluginSettings.popupWidth,
       popupHeight: this.pluginSettings.popupHeight,
       autoFitHeight: this.pluginSettings.autoFitPopupHeight,
+      autoFitMaxWidthPercent:
+        this.pluginSettings.autoFitMaxWidthPercent,
+      autoFitMaxHeightPercent:
+        this.pluginSettings.autoFitMaxHeightPercent,
       getAnchorRect: () => target.getBoundingClientRect(),
       onPointerEnter: () => this.cancelHoverClose(),
       onPointerLeave: () => this.queueHoverClose(),

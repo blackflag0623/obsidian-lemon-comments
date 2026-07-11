@@ -51,9 +51,10 @@
 - 悬停显示延迟
 - 评论弹窗默认宽度
 - 评论弹窗默认高度
-- 高度自动适应内容
+- 阅读弹窗智能自适应
+- 自适应最大宽度与高度（默认各占 Obsidian 窗口的 60%）
 
-开启“高度自动适应内容”后，悬停阅读弹窗会将完整内容按比例缩放进可用视口，不显示内部滚动条。新增和编辑弹窗则保持可读尺寸，内容超过视口时滚动。
+开启“阅读弹窗智能自适应”后，弹窗始终紧贴高亮文字的上方或下方，绝不居中或覆盖高亮。插件会先尝试以原字号完整展示评论；如果两侧都放不下，则选择空间更大的一侧，并在配置的最大窗口比例内滚动，不会缩小文字。
 
 ## 当前限制
 
@@ -131,9 +132,10 @@ Under **Settings → Lemon Comments**, you can configure:
 - Hover delay
 - Default popup width
 - Default popup height
-- Content-aware automatic height
+- Smart reading-popup sizing
+- Maximum adaptive width and height (60% of the Obsidian window by default)
 
-When automatic height is enabled, hover popups scale their complete content to fit the available viewport without an internal scrollbar. Create and edit popups preserve a readable size and scroll when their content exceeds the viewport.
+When smart sizing is enabled, the popup always remains anchored directly above or below the highlighted text. It never falls back to the center or covers the highlight. The plugin first tries to show the complete comment at its normal font size. If neither side has enough room, it uses the side with more available space and scrolls within the configured maximum window percentages instead of shrinking the text.
 
 ## Current limitations
 

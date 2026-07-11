@@ -74,15 +74,47 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("高度自动适应内容")
+      .setName("阅读弹窗智能自适应")
       .setDesc(
-        "开启后忽略默认高度。悬停阅读弹窗会完整缩放进视口且不显示内部滚动条；新增和编辑弹窗保持可读尺寸，超出视口时滚动。"
+        "始终紧贴高亮文字上方或下方，不会居中或覆盖高亮。完整内容放不下时，选择空间更大的一侧并在窗口内滚动。"
       )
       .addToggle((toggle) =>
         toggle
           .setValue(this.readingComments.pluginSettings.autoFitPopupHeight)
           .onChange(async (value) => {
             this.readingComments.pluginSettings.autoFitPopupHeight = value;
+            await this.readingComments.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("自适应最大宽度")
+      .setDesc("悬停阅读弹窗最多占 Obsidian 窗口宽度的百分比。")
+      .addSlider((slider) =>
+        slider
+          .setLimits(30, 95, 5)
+          .setValue(
+            this.readingComments.pluginSettings.autoFitMaxWidthPercent
+          )
+          .onChange(async (value) => {
+            this.readingComments.pluginSettings.autoFitMaxWidthPercent =
+              value;
+            await this.readingComments.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("自适应最大高度")
+      .setDesc("悬停阅读弹窗最多占 Obsidian 窗口高度的百分比。")
+      .addSlider((slider) =>
+        slider
+          .setLimits(30, 95, 5)
+          .setValue(
+            this.readingComments.pluginSettings.autoFitMaxHeightPercent
+          )
+          .onChange(async (value) => {
+            this.readingComments.pluginSettings.autoFitMaxHeightPercent =
+              value;
             await this.readingComments.saveSettings();
           })
       );

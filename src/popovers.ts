@@ -29,6 +29,8 @@ interface HoverPopoverOptions {
   popupWidth: number;
   popupHeight: number;
   autoFitHeight: boolean;
+  autoFitMaxWidthPercent: number;
+  autoFitMaxHeightPercent: number;
   getAnchorRect: () => DOMRect;
   onPointerEnter: () => void;
   onPointerLeave: () => void;
@@ -556,11 +558,14 @@ export class CommentHoverPopover extends Component {
     }
 
     if (this.options.autoFitHeight) {
-      positionAutoFitFloatingElement(
+      positionAdaptiveHoverElement(
         root,
         this.options.getAnchorRect(),
         win,
-        8
+        8,
+        this.options.popupWidth,
+        this.options.autoFitMaxWidthPercent,
+        this.options.autoFitMaxHeightPercent
       );
       return;
     }
@@ -645,54 +650,85 @@ function positionSizedFloatingElement(
   return placement;
 }
 
-function positionAutoFitFloatingElement(
+function positionAdaptiveHoverElement(
   element: HTMLElement,
   anchor: DOMRect,
   win: Window,
-  gap: number
+  gap: number,
+  preferredWidth: number,
+  maxWidthPercent: number,
+  maxHeightPercent: number
 ): void {
   const margin = 10;
+  const viewportWidth = Math.max(1, win.innerWidth - margin * 2);
+  const viewportHeight = Math.max(1, win.innerHeight - margin * 2);
+  const maxWidth = Math.max(
+    1,
+    Math.min(viewportWidth, win.innerWidth * (maxWidthPercent / 100))
+  );
+  const maxHeight = Math.max(
+    96,
+    Math.min(viewportHeight, win.innerHeight * (maxHeightPercent / 100))
+  );
+  const initialWidth = Math.min(preferredWidth, maxWidth);
+
   element.setCssStyles({
+    width: `${initialWidth}px`,
+    height: "auto",
     maxHeight: "none",
     overflowY: "visible",
-    transform: "none",
-    transformOrigin: "top left"
+    transform: "none"
   });
 
-  const naturalWidth = element.offsetWidth;
-  const naturalHeight = element.offsetHeight;
-  if (naturalWidth === 0 || naturalHeight === 0) {
+  let contentHeight = element.offsetHeight;
+  if (element.offsetWidth === 0 || contentHeight === 0) {
     return;
   }
 
-  const maxWidth = Math.max(1, win.innerWidth - margin * 2);
-  const maxHeight = Math.max(1, win.innerHeight - margin * 2);
-  const scale = Math.min(
-    1,
-    maxWidth / naturalWidth,
-    maxHeight / naturalHeight
-  );
-  const width = naturalWidth * scale;
-  const height = naturalHeight * scale;
   const availableBelow = win.innerHeight - anchor.bottom - gap - margin;
   const availableAbove = anchor.top - gap - margin;
+  let fitsBelow =
+    contentHeight <= maxHeight && contentHeight <= availableBelow;
+  let fitsAbove =
+    contentHeight <= maxHeight && contentHeight <= availableAbove;
+
+  if (!fitsBelow && !fitsAbove && maxWidth > initialWidth) {
+    element.setCssStyles({ width: `${maxWidth}px` });
+    contentHeight = element.offsetHeight;
+    fitsBelow =
+      contentHeight <= maxHeight && contentHeight <= availableBelow;
+    fitsAbove =
+      contentHeight <= maxHeight && contentHeight <= availableAbove;
+  }
+
+  const placement: FloatingPlacement =
+    fitsBelow || (!fitsAbove && availableBelow >= availableAbove)
+      ? "below"
+      : "above";
+  const availableOnPlacement =
+    placement === "below" ? availableBelow : availableAbove;
+  const displayHeight =
+    fitsBelow || fitsAbove
+      ? contentHeight
+      : Math.max(1, Math.min(maxHeight, availableOnPlacement));
+  const needsScrolling = contentHeight > displayHeight;
+
+  element.setCssStyles({
+    height: needsScrolling ? `${displayHeight}px` : "auto",
+    maxHeight: `${displayHeight}px`,
+    overflowY: needsScrolling ? "auto" : "visible"
+  });
 
   let left = anchor.left;
-  let top =
-    height <= availableBelow
+  const top =
+    placement === "below"
       ? anchor.bottom + gap
-      : height <= availableAbove
-        ? anchor.top - height - gap
-        : Math.min(
-            Math.max(margin, anchor.top - height / 2),
-            win.innerHeight - height - margin
-          );
+      : anchor.top - displayHeight - gap;
 
-  left = Math.min(left, win.innerWidth - width - margin);
-  top = Math.min(top, win.innerHeight - height - margin);
+  const displayWidth = element.offsetWidth;
+  left = Math.min(left, win.innerWidth - displayWidth - margin);
   element.setCssStyles({
     left: `${Math.max(margin, left)}px`,
-    top: `${Math.max(margin, top)}px`,
-    transform: `scale(${scale})`
+    top: `${Math.max(margin, top)}px`
   });
 }

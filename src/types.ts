@@ -19,6 +19,8 @@ export interface ReadingCommentsSettings {
   popupWidth: number;
   popupHeight: number;
   autoFitPopupHeight: boolean;
+  autoFitMaxWidthPercent: number;
+  autoFitMaxHeightPercent: number;
 }
 
 export interface ReadingCommentsData {
@@ -32,7 +34,9 @@ export const DEFAULT_SETTINGS: ReadingCommentsSettings = {
   hoverDelay: 180,
   popupWidth: 430,
   popupHeight: 420,
-  autoFitPopupHeight: false
+  autoFitPopupHeight: false,
+  autoFitMaxWidthPercent: 60,
+  autoFitMaxHeightPercent: 60
 };
 
 export function normalizePluginData(value: unknown): ReadingCommentsData {
@@ -58,7 +62,15 @@ export function normalizePluginData(value: unknown): ReadingCommentsData {
     autoFitPopupHeight:
       typeof rawSettings.autoFitPopupHeight === "boolean"
         ? rawSettings.autoFitPopupHeight
-        : DEFAULT_SETTINGS.autoFitPopupHeight
+        : DEFAULT_SETTINGS.autoFitPopupHeight,
+    autoFitMaxWidthPercent:
+      typeof rawSettings.autoFitMaxWidthPercent === "number"
+        ? Math.min(95, Math.max(30, rawSettings.autoFitMaxWidthPercent))
+        : DEFAULT_SETTINGS.autoFitMaxWidthPercent,
+    autoFitMaxHeightPercent:
+      typeof rawSettings.autoFitMaxHeightPercent === "number"
+        ? Math.min(95, Math.max(30, rawSettings.autoFitMaxHeightPercent))
+        : DEFAULT_SETTINGS.autoFitMaxHeightPercent
   };
 
   const commentsByPath: Record<string, ReadingComment[]> = {};
