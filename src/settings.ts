@@ -76,7 +76,7 @@ export class ReadingCommentsSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("高度自动适应内容")
       .setDesc(
-        "开启后忽略默认高度，新增、编辑和阅读弹窗均随内容自动伸缩；超过视口时才滚动整个弹窗。"
+        "开启后忽略默认高度。悬停阅读弹窗会完整缩放进视口且不显示内部滚动条；新增和编辑弹窗保持可读尺寸，超出视口时滚动。"
       )
       .addToggle((toggle) =>
         toggle

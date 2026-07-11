@@ -53,7 +53,7 @@
 - 评论弹窗默认高度
 - 高度自动适应内容
 
-开启“高度自动适应内容”后，新增、编辑和悬停阅读弹窗都会随内容伸缩；只有内容超过可用视口时，整个弹窗才会滚动。
+开启“高度自动适应内容”后，悬停阅读弹窗会将完整内容按比例缩放进可用视口，不显示内部滚动条。新增和编辑弹窗则保持可读尺寸，内容超过视口时滚动。
 
 ## 当前限制
 
@@ -133,7 +133,7 @@ Under **Settings → Lemon Comments**, you can configure:
 - Default popup height
 - Content-aware automatic height
 
-When automatic height is enabled, create, edit, and hover popups expand or shrink with their content. The entire popup scrolls only when its content exceeds the available viewport.
+When automatic height is enabled, hover popups scale their complete content to fit the available viewport without an internal scrollbar. Create and edit popups preserve a readable size and scroll when their content exceeds the viewport.
 
 ## Current limitations
 

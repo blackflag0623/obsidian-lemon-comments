@@ -498,6 +498,7 @@ export class CommentHoverPopover extends Component {
     this.registerDomEvent(root, "pointerenter", this.options.onPointerEnter);
     this.registerDomEvent(root, "pointerleave", this.options.onPointerLeave);
     this.registerDomEvent(editButton, "click", this.options.onEdit);
+    this.registerDomEvent(content, "load", () => this.position(), true);
     this.registerDomEvent(win, "resize", () => this.position());
     this.registerDomEvent(
       doc,
@@ -526,11 +527,14 @@ export class CommentHoverPopover extends Component {
       content,
       this.options.sourcePath,
       component
-    ).catch((error) => {
-      console.error("Lemon Comments: hover Markdown render failed", error);
-      content.empty();
-      content.setText("评论渲染失败。");
-    });
+    )
+      .then(() => this.position())
+      .catch((error) => {
+        console.error("Lemon Comments: hover Markdown render failed", error);
+        content.empty();
+        content.setText("评论渲染失败。");
+        this.position();
+      });
 
     this.position();
     win.requestAnimationFrame(() => this.position());
@@ -548,6 +552,16 @@ export class CommentHoverPopover extends Component {
     const root = this.rootEl;
     const win = this.options.doc.defaultView ?? activeWindow;
     if (root === null) {
+      return;
+    }
+
+    if (this.options.autoFitHeight) {
+      positionAutoFitFloatingElement(
+        root,
+        this.options.getAnchorRect(),
+        win,
+        8
+      );
       return;
     }
 
@@ -629,4 +643,56 @@ function positionSizedFloatingElement(
     top: `${Math.max(margin, top)}px`
   });
   return placement;
+}
+
+function positionAutoFitFloatingElement(
+  element: HTMLElement,
+  anchor: DOMRect,
+  win: Window,
+  gap: number
+): void {
+  const margin = 10;
+  element.setCssStyles({
+    maxHeight: "none",
+    overflowY: "visible",
+    transform: "none",
+    transformOrigin: "top left"
+  });
+
+  const naturalWidth = element.offsetWidth;
+  const naturalHeight = element.offsetHeight;
+  if (naturalWidth === 0 || naturalHeight === 0) {
+    return;
+  }
+
+  const maxWidth = Math.max(1, win.innerWidth - margin * 2);
+  const maxHeight = Math.max(1, win.innerHeight - margin * 2);
+  const scale = Math.min(
+    1,
+    maxWidth / naturalWidth,
+    maxHeight / naturalHeight
+  );
+  const width = naturalWidth * scale;
+  const height = naturalHeight * scale;
+  const availableBelow = win.innerHeight - anchor.bottom - gap - margin;
+  const availableAbove = anchor.top - gap - margin;
+
+  let left = anchor.left;
+  let top =
+    height <= availableBelow
+      ? anchor.bottom + gap
+      : height <= availableAbove
+        ? anchor.top - height - gap
+        : Math.min(
+            Math.max(margin, anchor.top - height / 2),
+            win.innerHeight - height - margin
+          );
+
+  left = Math.min(left, win.innerWidth - width - margin);
+  top = Math.min(top, win.innerHeight - height - margin);
+  element.setCssStyles({
+    left: `${Math.max(margin, left)}px`,
+    top: `${Math.max(margin, top)}px`,
+    transform: `scale(${scale})`
+  });
 }
