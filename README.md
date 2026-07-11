@@ -18,6 +18,8 @@
 - 评论支持 Obsidian 原生 Markdown，包括标题、列表、代码块和链接。
 - `Enter` 保存，`Shift+Enter` 换行，`Esc` 取消。
 - 点击编辑器外部自动保存。
+- 编辑器底部的取消、保存与删除操作始终可见。
+- 评论内容增长时，编辑弹窗会重新比较上下空间并自动切换到更合适的一侧。
 - 悬停高亮文字查看评论，点击高亮文字编辑。
 - 柠檬绿色圆角高亮，可自定义颜色。
 - 新增、编辑与悬停阅读弹窗共用可配置的宽度、高度及自动适应内容模式。
@@ -99,6 +101,8 @@ After you save a comment, the selected text receives a rounded lemon-green highl
 - Native Obsidian Markdown rendering for headings, lists, code blocks, links, and more.
 - `Enter` to save, `Shift+Enter` for a new line, and `Esc` to cancel.
 - Automatic saving when you click outside the editor.
+- Cancel, save, and delete actions remain visible in a sticky editor footer.
+- As comment content grows, the editor compares the available space again and switches to the better side of the selection.
 - Hover over highlighted text to read a comment; click the highlight to edit it.
 - Rounded lemon-green highlights with a configurable color.
 - Shared configurable width, height, and content-aware sizing for create, edit, and hover popups.

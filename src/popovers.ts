@@ -235,6 +235,7 @@ export class CommentEditorPopover extends Component {
 
     this.registerDomEvent(textarea, "input", () => {
       this.syncTextareaHeight();
+      this.position();
       this.queuePreview();
     });
     this.registerDomEvent(textarea, "keydown", (event) => {
@@ -365,6 +366,7 @@ export class CommentEditorPopover extends Component {
         cls: "reading-comment-editor__preview-empty",
         text: "评论会在这里按 Obsidian 原生 Markdown 样式渲染。"
       });
+      this.position();
       return;
     }
 
@@ -379,10 +381,12 @@ export class CommentEditorPopover extends Component {
         this.options.sourcePath,
         component
       );
+      this.position();
     } catch (error) {
       console.error("Lemon Comments: Markdown preview failed", error);
       preview.empty();
       preview.setText("Markdown 预览渲染失败，请检查评论内容。");
+      this.position();
     }
   }
 
@@ -438,12 +442,13 @@ export class CommentEditorPopover extends Component {
       return;
     }
 
-    this.placement = positionSizedFloatingElement(
+    this.placement = positionEditorElement(
       root,
       this.options.getAnchorRect(),
       win,
       10,
-      this.placement
+      this.options.popupHeight,
+      this.options.autoFitHeight
     );
   }
 }
@@ -642,6 +647,69 @@ function positionSizedFloatingElement(
     left = win.innerWidth - panel.width - margin;
   }
   top = Math.min(top, win.innerHeight - panel.height - margin);
+
+  element.setCssStyles({
+    left: `${Math.max(margin, left)}px`,
+    top: `${Math.max(margin, top)}px`
+  });
+  return placement;
+}
+
+function positionEditorElement(
+  element: HTMLElement,
+  anchor: DOMRect,
+  win: Window,
+  gap: number,
+  preferredHeight: number,
+  autoFitHeight: boolean
+): FloatingPlacement {
+  const margin = 10;
+  const availableBelow = Math.max(
+    1,
+    win.innerHeight - anchor.bottom - gap - margin
+  );
+  const availableAbove = Math.max(1, anchor.top - gap - margin);
+
+  element.setCssStyles({
+    height: autoFitHeight ? "auto" : `${preferredHeight}px`,
+    maxHeight: "none",
+    overflowY: "visible"
+  });
+
+  const naturalHeight = autoFitHeight
+    ? element.offsetHeight
+    : preferredHeight;
+  const fitsBelow = naturalHeight <= availableBelow;
+  const fitsAbove = naturalHeight <= availableAbove;
+  const placement: FloatingPlacement =
+    fitsBelow || (!fitsAbove && availableBelow >= availableAbove)
+      ? "below"
+      : "above";
+  const availableHeight =
+    placement === "below" ? availableBelow : availableAbove;
+  const displayHeight = Math.min(naturalHeight, availableHeight);
+  const needsScrolling =
+    naturalHeight > availableHeight ||
+    element.scrollHeight > displayHeight;
+
+  element.setCssStyles({
+    height:
+      autoFitHeight && !needsScrolling
+        ? "auto"
+        : `${displayHeight}px`,
+    maxHeight: `${availableHeight}px`,
+    overflowY: needsScrolling ? "auto" : "visible"
+  });
+
+  const panel = element.getBoundingClientRect();
+  let left = anchor.left;
+  const top =
+    placement === "below"
+      ? anchor.bottom + gap
+      : anchor.top - panel.height - gap;
+  if (left + panel.width > win.innerWidth - margin) {
+    left = win.innerWidth - panel.width - margin;
+  }
 
   element.setCssStyles({
     left: `${Math.max(margin, left)}px`,
