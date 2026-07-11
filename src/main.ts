@@ -1,5 +1,6 @@
 import {
   Component,
+  MarkdownRenderChild,
   MarkdownPostProcessorContext,
   MarkdownView,
   Notice,
@@ -40,6 +41,7 @@ const FORBIDDEN_SELECTION_SELECTOR =
 export default class ReadingCommentsPlugin extends Plugin {
   private data: ReadingCommentsData = normalizePluginData(null);
   private controllers = new Map<HTMLElement, RootDecorationController>();
+  private rootWatchers = new Map<HTMLElement, RootMutationWatcher>();
   private renderFrames = new Map<HTMLElement, number>();
   private documentControllers = new Map<
     Document,
@@ -67,16 +69,23 @@ export default class ReadingCommentsPlugin extends Plugin {
 
     this.registerMarkdownPostProcessor(
       (element: HTMLElement, context: MarkdownPostProcessorContext) => {
-        if (element.closest(".internal-embed") !== null) {
-          return;
-        }
+        context.addChild(
+          new DeferredRootDecorationChild(element, (attachedElement) => {
+            if (attachedElement.closest(".internal-embed") !== null) {
+              return true;
+            }
 
-        const root = element.closest<HTMLElement>(
-          ".markdown-reading-view .markdown-preview-view.markdown-rendered"
+            const root = attachedElement.closest<HTMLElement>(
+              ".markdown-reading-view .markdown-preview-view.markdown-rendered"
+            );
+            if (root === null) {
+              return false;
+            }
+
+            this.scheduleRootRender(root, context.sourcePath);
+            return true;
+          })
         );
-        if (root !== null) {
-          this.scheduleRootRender(root, context.sourcePath);
-        }
       }
     );
 
@@ -144,6 +153,10 @@ export default class ReadingCommentsPlugin extends Plugin {
       controller.unload();
     }
     this.controllers.clear();
+    for (const watcher of this.rootWatchers.values()) {
+      watcher.unload();
+    }
+    this.rootWatchers.clear();
 
     for (const [root, frame] of this.renderFrames) {
       (root.ownerDocument.defaultView ?? activeWindow).cancelAnimationFrame(frame);
@@ -670,6 +683,7 @@ export default class ReadingCommentsPlugin extends Plugin {
   }
 
   private scheduleRootRender(root: HTMLElement, sourcePath: string): void {
+    const watcher = this.ensureRootWatcher(root, sourcePath);
     const existing = this.renderFrames.get(root);
     const win = root.ownerDocument.defaultView ?? activeWindow;
     if (existing !== undefined) {
@@ -682,17 +696,42 @@ export default class ReadingCommentsPlugin extends Plugin {
         return;
       }
 
-      this.applySettingsToDocument(root.ownerDocument);
-      this.controllers.get(root)?.unload();
-      const controller = new RootDecorationController(
-        root,
-        sourcePath,
-        this
-      );
-      this.controllers.set(root, controller);
-      controller.load();
+      watcher.pause();
+      try {
+        this.applySettingsToDocument(root.ownerDocument);
+        this.controllers.get(root)?.unload();
+        const controller = new RootDecorationController(
+          root,
+          sourcePath,
+          this
+        );
+        this.controllers.set(root, controller);
+        controller.load();
+      } finally {
+        watcher.resume();
+      }
     });
     this.renderFrames.set(root, frame);
+  }
+
+  private ensureRootWatcher(
+    root: HTMLElement,
+    sourcePath: string
+  ): RootMutationWatcher {
+    const existing = this.rootWatchers.get(root);
+    if (existing !== undefined) {
+      existing.sourcePath = sourcePath;
+      return existing;
+    }
+
+    const watcher = new RootMutationWatcher(
+      root,
+      sourcePath,
+      () => this.scheduleRootRender(root, watcher.sourcePath)
+    );
+    this.rootWatchers.set(root, watcher);
+    watcher.load();
+    return watcher;
   }
 
   private refreshPath(sourcePath: string): void {
@@ -746,6 +785,13 @@ export default class ReadingCommentsPlugin extends Plugin {
       if (!root.isConnected) {
         controller.unload();
         this.controllers.delete(root);
+      }
+    }
+
+    for (const [root, watcher] of this.rootWatchers) {
+      if (!root.isConnected) {
+        watcher.unload();
+        this.rootWatchers.delete(root);
       }
     }
   }
@@ -832,7 +878,7 @@ class RootDecorationController extends Component {
   onload(): void {
     unwrapHighlights(this.root);
     const comments = [...this.plugin.getComments(this.sourcePath)].sort(
-      (left, right) => left.createdAt - right.createdAt
+      (left, right) => right.updatedAt - left.updatedAt
     );
     const map = buildTextMap(this.root);
     const claims: LocatedAnchor[] = [];
@@ -973,6 +1019,97 @@ class DocumentSelectionController extends Component {
         );
       }
     });
+  }
+}
+
+class DeferredRootDecorationChild extends MarkdownRenderChild {
+  private frame: number | null = null;
+  private attempts = 0;
+
+  constructor(
+    containerEl: HTMLElement,
+    private readonly attach: (element: HTMLElement) => boolean
+  ) {
+    super(containerEl);
+  }
+
+  onload(): void {
+    this.schedule();
+  }
+
+  onunload(): void {
+    if (this.frame === null) {
+      return;
+    }
+
+    (this.containerEl.ownerDocument.defaultView ?? activeWindow)
+      .cancelAnimationFrame(this.frame);
+    this.frame = null;
+  }
+
+  private schedule(): void {
+    const win = this.containerEl.ownerDocument.defaultView ?? activeWindow;
+    this.frame = win.requestAnimationFrame(() => {
+      this.frame = null;
+      if (this.attach(this.containerEl)) {
+        return;
+      }
+
+      this.attempts += 1;
+      if (this.attempts < 12) {
+        this.schedule();
+      }
+    });
+  }
+}
+
+class RootMutationWatcher {
+  private observer: MutationObserver;
+  private active = false;
+
+  constructor(
+    private readonly root: HTMLElement,
+    public sourcePath: string,
+    private readonly onChange: () => void
+  ) {
+    const win = root.ownerDocument.defaultView ?? activeWindow;
+    const Observer = (
+      win as Window & {
+        MutationObserver: typeof MutationObserver;
+      }
+    ).MutationObserver;
+    this.observer = new Observer(() => this.onChange());
+  }
+
+  load(): void {
+    this.resume();
+  }
+
+  pause(): void {
+    if (!this.active) {
+      return;
+    }
+
+    this.observer.disconnect();
+    this.active = false;
+  }
+
+  resume(): void {
+    if (this.active || !this.root.isConnected) {
+      return;
+    }
+
+    this.observer.observe(this.root, {
+      characterData: true,
+      childList: true,
+      subtree: true
+    });
+    this.active = true;
+  }
+
+  unload(): void {
+    this.observer.disconnect();
+    this.active = false;
   }
 }
 

@@ -25,6 +25,7 @@
 - 新增、编辑与悬停阅读弹窗共用可配置的宽度、高度及自动适应内容模式。
 - 支持触屏点击查看与键盘操作。
 - 文件重命名时自动迁移评论数据。
+- 退出并重新打开 Obsidian 后自动恢复评论与高亮。
 - 正文发生小范围调整后，使用文本与上下文锚点重新定位评论。
 - 通过命令面板运行“管理当前笔记的阅读评论”，集中编辑或删除评论。
 
@@ -108,6 +109,7 @@ After you save a comment, the selected text receives a rounded lemon-green highl
 - Shared configurable width, height, and content-aware sizing for create, edit, and hover popups.
 - Touch interaction and keyboard accessibility.
 - Automatic comment-data migration when a note is renamed.
+- Automatic restoration of comments and highlights after restarting Obsidian.
 - Text and surrounding-context anchors that relocate comments after small note edits.
 - A Command palette action for managing, editing, or deleting comments in the current note.
 
