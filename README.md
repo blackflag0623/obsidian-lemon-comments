@@ -24,6 +24,7 @@
 - 柠檬绿色圆角高亮，可自定义颜色。
 - 新增、编辑与悬停阅读弹窗共用可配置的宽度、高度及自动适应内容模式。
 - 支持触屏点击查看与键盘操作。
+- 支持 en-US 与简体中文；Obsidian 使用中文时自动显示简体中文，其余语言使用 en-US。
 - 文件重命名时自动迁移评论数据。
 - 退出并重新打开 Obsidian 后自动恢复评论与高亮。
 - 正文发生小范围调整后，使用文本与上下文锚点重新定位评论。
@@ -44,7 +45,7 @@
 3. 确认目录中包含 `main.js`、`manifest.json` 和 `styles.css`。
 4. 在 Obsidian 的“设置 → 第三方插件”中启用 **Lemon Comments**。
 
-要求 Obsidian 1.4.0 或更高版本。
+要求 Obsidian 1.8.7 或更高版本。
 
 ## 设置
 
@@ -108,6 +109,7 @@ After you save a comment, the selected text receives a rounded lemon-green highl
 - Rounded lemon-green highlights with a configurable color.
 - Shared configurable width, height, and content-aware sizing for create, edit, and hover popups.
 - Touch interaction and keyboard accessibility.
+- en-US and Simplified Chinese localization. Chinese Obsidian installations use Simplified Chinese automatically; all other languages use en-US.
 - Automatic comment-data migration when a note is renamed.
 - Automatic restoration of comments and highlights after restarting Obsidian.
 - Text and surrounding-context anchors that relocate comments after small note edits.
@@ -128,7 +130,7 @@ Manual installation:
 3. Make sure the directory contains `main.js`, `manifest.json`, and `styles.css`.
 4. Enable **Lemon Comments** under **Settings → Community plugins** in Obsidian.
 
-Lemon Comments requires Obsidian 1.4.0 or later.
+Lemon Comments requires Obsidian 1.8.7 or later.
 
 ## Settings
 

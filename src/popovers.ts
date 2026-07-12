@@ -1,4 +1,5 @@
 import { App, Component, MarkdownRenderer, setIcon } from "obsidian";
+import { t } from "./i18n";
 
 interface SelectionToolbarOptions {
   doc: Document;
@@ -54,13 +55,13 @@ export class SelectionToolbarPopover extends Component {
     root.className =
       "reading-comments-ui reading-comment-selection-toolbar reading-comments-floating";
     root.setAttribute("role", "toolbar");
-    root.setAttribute("aria-label", "选中文字操作");
+    root.setAttribute("aria-label", t("selection.toolbarLabel"));
 
     const addButton = doc.createElement("button");
     addButton.className = "reading-comment-selection-toolbar__button";
     addButton.type = "button";
-    addButton.setAttribute("aria-label", "添加评论");
-    addButton.setAttribute("title", "添加评论");
+    addButton.setAttribute("aria-label", t("selection.addComment"));
+    addButton.setAttribute("title", t("selection.addComment"));
     setIcon(addButton, "message-square-plus");
     root.appendChild(addButton);
 
@@ -167,24 +168,29 @@ export class CommentEditorPopover extends Component {
         : `${this.options.popupHeight}px`
     });
     root.setAttribute("role", "dialog");
-    root.setAttribute("aria-label", this.options.isEditing ? "编辑评论" : "新增评论");
+    root.setAttribute(
+      "aria-label",
+      t(this.options.isEditing ? "editor.editTitle" : "editor.newTitle")
+    );
 
     const heading = doc.createElement("div");
     heading.className = "reading-comment-editor__heading";
-    heading.textContent = this.options.isEditing ? "编辑评论" : "新增评论";
+    heading.textContent = t(
+      this.options.isEditing ? "editor.editTitle" : "editor.newTitle"
+    );
     root.appendChild(heading);
 
     const textarea = doc.createElement("textarea");
     textarea.className = "reading-comment-editor__textarea";
-    textarea.placeholder = "输入 Markdown 评论…";
+    textarea.placeholder = t("editor.placeholder");
     textarea.value = this.options.initialValue;
     textarea.rows = 4;
-    textarea.setAttribute("aria-label", "评论内容");
+    textarea.setAttribute("aria-label", t("editor.contentLabel"));
     root.appendChild(textarea);
 
     const previewLabel = doc.createElement("div");
     previewLabel.className = "reading-comment-editor__preview-label";
-    previewLabel.textContent = "Markdown 预览";
+    previewLabel.textContent = t("editor.previewLabel");
     root.appendChild(previewLabel);
 
     const preview = doc.createElement("div");
@@ -198,7 +204,7 @@ export class CommentEditorPopover extends Component {
 
     const hint = doc.createElement("span");
     hint.className = "reading-comment-editor__hint";
-    hint.textContent = "Enter 保存 · Shift+Enter 换行 · Esc 取消";
+    hint.textContent = t("editor.shortcutHint");
     footer.appendChild(hint);
 
     const actions = doc.createElement("div");
@@ -209,8 +215,8 @@ export class CommentEditorPopover extends Component {
       const deleteButton = doc.createElement("button");
       deleteButton.className = "reading-comment-editor__delete";
       deleteButton.type = "button";
-      deleteButton.textContent = "删除";
-      deleteButton.setAttribute("aria-label", "删除评论");
+      deleteButton.textContent = t("editor.delete");
+      deleteButton.setAttribute("aria-label", t("editor.deleteLabel"));
       actions.appendChild(deleteButton);
       this.registerDomEvent(deleteButton, "click", () => {
         void this.deleteComment();
@@ -219,13 +225,13 @@ export class CommentEditorPopover extends Component {
 
     const cancelButton = doc.createElement("button");
     cancelButton.type = "button";
-    cancelButton.textContent = "取消";
+    cancelButton.textContent = t("editor.cancel");
     actions.appendChild(cancelButton);
 
     const saveButton = doc.createElement("button");
     saveButton.className = "mod-cta";
     saveButton.type = "button";
-    saveButton.textContent = "保存";
+    saveButton.textContent = t("editor.save");
     actions.appendChild(saveButton);
 
     doc.body.appendChild(root);
@@ -364,7 +370,7 @@ export class CommentEditorPopover extends Component {
     if (markdown.length === 0) {
       preview.createSpan({
         cls: "reading-comment-editor__preview-empty",
-        text: "评论会在这里按 Obsidian 原生 Markdown 样式渲染。"
+        text: t("editor.previewEmpty")
       });
       this.position();
       return;
@@ -385,7 +391,7 @@ export class CommentEditorPopover extends Component {
     } catch (error) {
       console.error("Lemon Comments: Markdown preview failed", error);
       preview.empty();
-      preview.setText("Markdown 预览渲染失败，请检查评论内容。");
+      preview.setText(t("editor.previewError"));
       this.position();
     }
   }
@@ -490,13 +496,13 @@ export class CommentHoverPopover extends Component {
     root.appendChild(footer);
 
     const hint = doc.createElement("span");
-    hint.textContent = "点击高亮文字可编辑";
+    hint.textContent = t("hover.editHint");
     footer.appendChild(hint);
 
     const editButton = doc.createElement("button");
     editButton.type = "button";
-    editButton.textContent = "编辑";
-    editButton.setAttribute("aria-label", "编辑评论");
+    editButton.textContent = t("hover.edit");
+    editButton.setAttribute("aria-label", t("hover.editLabel"));
     footer.appendChild(editButton);
 
     doc.body.appendChild(root);
@@ -539,7 +545,7 @@ export class CommentHoverPopover extends Component {
       .catch((error) => {
         console.error("Lemon Comments: hover Markdown render failed", error);
         content.empty();
-        content.setText("评论渲染失败。");
+        content.setText(t("hover.renderError"));
         this.position();
       });
 

@@ -33,6 +33,7 @@ import {
   type ReadingCommentsSettings,
   type TextQuoteAnchor
 } from "./types";
+import { t } from "./i18n";
 
 const MAX_SELECTION_LENGTH = 2_000;
 const FORBIDDEN_SELECTION_SELECTOR =
@@ -127,7 +128,7 @@ export default class ReadingCommentsPlugin extends Plugin {
 
     this.addCommand({
       id: "manage-current-note-comments",
-      name: "管理当前笔记的阅读评论",
+      name: t("command.manage"),
       checkCallback: (checking) => {
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (view?.file === null || view?.file === undefined) {
@@ -181,7 +182,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       this.refreshAllReadingViews();
     } catch (error) {
       console.error("Lemon Comments: failed to save settings", error);
-      new Notice("阅读评论设置保存失败，请查看控制台。");
+      new Notice(t("notice.settingsSaveFailed"));
     }
   }
 
@@ -202,7 +203,7 @@ export default class ReadingCommentsPlugin extends Plugin {
   ): void {
     const comment = this.findComment(sourcePath, commentId);
     if (comment === null) {
-      new Notice("这条评论已经不存在。");
+      new Notice(t("notice.commentMissing"));
       return;
     }
 
@@ -232,7 +233,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       await this.saveData(this.data);
       this.closeHover();
       this.refreshPath(sourcePath);
-      new Notice("评论已删除。");
+      new Notice(t("notice.commentDeleted"));
       return true;
     } catch (error) {
       console.error("Lemon Comments: failed to delete comment", error);
@@ -241,7 +242,7 @@ export default class ReadingCommentsPlugin extends Plugin {
         restored.splice(index, 0, removed);
       }
       this.data.commentsByPath[sourcePath] = restored;
-      new Notice("评论删除失败，请查看控制台。");
+      new Notice(t("notice.commentDeleteFailed"));
       return false;
     }
   }
@@ -404,7 +405,7 @@ export default class ReadingCommentsPlugin extends Plugin {
 
     if (this.rangeIntersectsSelector(range, root, FORBIDDEN_SELECTION_SELECTOR)) {
       this.closeSelectionToolbar();
-      new Notice("嵌入内容、代码块或公式暂不支持添加阅读评论。");
+      new Notice(t("notice.unsupportedSelection"));
       return;
     }
     if (
@@ -415,7 +416,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       )
     ) {
       this.closeSelectionToolbar();
-      new Notice("评论不能与已有评论重叠；点击高亮文字可编辑原评论。");
+      new Notice(t("notice.overlappingSelection"));
       return;
     }
 
@@ -426,14 +427,16 @@ export default class ReadingCommentsPlugin extends Plugin {
     }
     if (anchored.anchor.exact.length > MAX_SELECTION_LENGTH) {
       this.closeSelectionToolbar();
-      new Notice(`单条评论最多可关联 ${MAX_SELECTION_LENGTH} 个字符。`);
+      new Notice(
+        t("notice.selectionTooLong", { count: MAX_SELECTION_LENGTH })
+      );
       return;
     }
 
     const view = this.findViewForRoot(root);
     if (view?.file === null || view?.file === undefined) {
       this.closeSelectionToolbar();
-      new Notice("无法确定当前笔记，评论未创建。");
+      new Notice(t("notice.fileUnknown"));
       return;
     }
 
@@ -530,7 +533,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       await this.saveData(this.data);
       this.clearDocumentSelection();
       this.refreshPath(sourcePath);
-      new Notice("评论已添加。");
+      new Notice(t("notice.commentAdded"));
       return true;
     } catch (error) {
       console.error("Lemon Comments: failed to create comment", error);
@@ -541,7 +544,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       if (comments.length === 0) {
         delete this.data.commentsByPath[sourcePath];
       }
-      new Notice("评论保存失败，请查看控制台。");
+      new Notice(t("notice.commentSaveFailed"));
       return false;
     }
   }
@@ -553,7 +556,7 @@ export default class ReadingCommentsPlugin extends Plugin {
   ): Promise<boolean> {
     const comment = this.findComment(sourcePath, commentId);
     if (comment === null) {
-      new Notice("这条评论已经不存在。");
+      new Notice(t("notice.commentMissing"));
       return false;
     }
 
@@ -565,13 +568,13 @@ export default class ReadingCommentsPlugin extends Plugin {
     try {
       await this.saveData(this.data);
       this.refreshPath(sourcePath);
-      new Notice("评论已更新。");
+      new Notice(t("notice.commentUpdated"));
       return true;
     } catch (error) {
       console.error("Lemon Comments: failed to update comment", error);
       comment.body = previousBody;
       comment.updatedAt = previousUpdatedAt;
-      new Notice("评论更新失败，请查看控制台。");
+      new Notice(t("notice.commentUpdateFailed"));
       return false;
     }
   }
@@ -837,7 +840,7 @@ export default class ReadingCommentsPlugin extends Plugin {
       } else {
         this.data.commentsByPath[file.path] = previousAtDestination;
       }
-      new Notice("文件已重命名，但阅读评论迁移失败。");
+      new Notice(t("notice.renameMigrationFailed"));
     }
   }
 
@@ -858,7 +861,7 @@ export default class ReadingCommentsPlugin extends Plugin {
     } catch (error) {
       console.error("Lemon Comments: failed to remove deleted file data", error);
       this.data.commentsByPath[file.path] = comments;
-      new Notice("文件已删除，但其阅读评论数据清理失败。");
+      new Notice(t("notice.deletedFileCleanupFailed"));
     }
   }
 }
@@ -926,7 +929,7 @@ class RootDecorationController extends Component {
       }
 
       span.setAttribute("role", "button");
-      span.setAttribute("aria-label", "有评论；按 Enter 编辑");
+      span.setAttribute("aria-label", t("highlight.editLabel"));
       span.tabIndex = index === 0 ? 0 : -1;
 
       this.registerDomEvent(span, "pointerenter", () => {

@@ -1,4 +1,5 @@
 import { Component, MarkdownRenderer, Modal, setIcon } from "obsidian";
+import { t } from "./i18n";
 import type ReadingCommentsPlugin from "./main";
 import type { ReadingComment } from "./types";
 
@@ -13,7 +14,7 @@ export class CommentManagerModal extends Modal {
   }
 
   onOpen(): void {
-    this.setTitle("管理阅读评论");
+    this.setTitle(t("manager.title"));
     this.renderRows();
   }
 
@@ -31,14 +32,14 @@ export class CommentManagerModal extends Modal {
     if (comments.length === 0) {
       this.contentEl.createDiv({
         cls: "reading-comments-manager__empty",
-        text: "当前笔记还没有阅读评论。"
+        text: t("manager.empty")
       });
       return;
     }
 
     this.contentEl.createDiv({
       cls: "reading-comments-manager__summary",
-      text: `当前笔记共有 ${comments.length} 条评论。`
+      text: t("manager.summary", { count: comments.length })
     });
 
     for (const comment of comments) {
@@ -59,19 +60,19 @@ export class CommentManagerModal extends Modal {
     if (location === false) {
       header.createSpan({
         cls: "reading-comments-manager__orphan",
-        text: "未定位"
+        text: t("manager.orphaned")
       });
     }
 
     const actions = header.createDiv("reading-comments-manager__actions");
     const editButton = actions.createEl("button", {
-      attr: { "aria-label": "编辑评论", type: "button" }
+      attr: { "aria-label": t("manager.editLabel"), type: "button" }
     });
     setIcon(editButton, "pencil");
 
     const deleteButton = actions.createEl("button", {
       cls: "reading-comments-manager__delete",
-      attr: { "aria-label": "删除评论", type: "button" }
+      attr: { "aria-label": t("manager.deleteLabel"), type: "button" }
     });
     setIcon(deleteButton, "trash-2");
 
@@ -90,7 +91,7 @@ export class CommentManagerModal extends Modal {
     ).catch((error) => {
       console.error("Lemon Comments: manager Markdown render failed", error);
       markdown.empty();
-      markdown.setText("评论渲染失败。");
+      markdown.setText(t("manager.renderError"));
     });
 
     editButton.addEventListener("click", () => {
