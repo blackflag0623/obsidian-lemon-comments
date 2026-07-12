@@ -28,6 +28,7 @@
 - 文件重命名时自动迁移评论数据。
 - 退出并重新打开 Obsidian 后自动恢复评论与高亮。
 - 正文发生小范围调整后，使用文本与上下文锚点重新定位评论。
+- 相同关键词出现多次时，使用前后文只定位最初选中的实例；上下文不足时宁可显示为未定位，也不会误挂到其他同词位置。
 - 通过命令面板运行“管理当前笔记的阅读评论”，集中编辑或删除评论。
 
 ## 数据存储
@@ -113,6 +114,7 @@ After you save a comment, the selected text receives a rounded lemon-green highl
 - Automatic comment-data migration when a note is renamed.
 - Automatic restoration of comments and highlights after restarting Obsidian.
 - Text and surrounding-context anchors that relocate comments after small note edits.
+- Repeated keywords are disambiguated by surrounding context. If the context is insufficient, a comment remains unlocated instead of attaching to the wrong occurrence.
 - A Command palette action for managing, editing, or deleting comments in the current note.
 
 ## Data storage

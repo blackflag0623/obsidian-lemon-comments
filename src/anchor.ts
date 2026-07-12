@@ -1,6 +1,10 @@
 import type { TextQuoteAnchor } from "./types";
 
 const CONTEXT_LENGTH = 64;
+const MIN_STRONG_SIDE_CONTEXT = 8;
+const STRONG_SIDE_CONTEXT = 16;
+const COMBINED_CONTEXT = 24;
+const SAFE_UNCONTEXTUAL_EXACT_LENGTH = 32;
 const SKIPPED_SELECTOR = [
   ".reading-comments-ui",
   ".internal-embed",
@@ -124,23 +128,48 @@ export function locateAnchor(
     return null;
   }
 
+  const normalizedAnchorPrefix = normalizeContext(anchor.prefix);
+  const normalizedAnchorSuffix = normalizeContext(anchor.suffix);
   let best: LocatedAnchor | null = null;
   let index = map.text.indexOf(anchor.exact);
   while (index !== -1) {
     const end = index + anchor.exact.length;
-    const currentPrefix = map.text.slice(
-      Math.max(0, index - anchor.prefix.length),
-      index
+    const currentPrefix = normalizeContext(
+      map.text.slice(
+        Math.max(0, index - anchor.prefix.length * 2),
+        index
+      )
     );
-    const currentSuffix = map.text.slice(end, end + anchor.suffix.length);
-    const contextScore =
-      commonSuffixLength(currentPrefix, anchor.prefix) * 2 +
-      commonPrefixLength(currentSuffix, anchor.suffix) * 2;
+    const currentSuffix = normalizeContext(
+      map.text.slice(end, end + anchor.suffix.length * 2)
+    );
+    const prefixMatch = commonSuffixLength(
+      currentPrefix,
+      normalizedAnchorPrefix
+    );
+    const suffixMatch = commonPrefixLength(
+      currentSuffix,
+      normalizedAnchorSuffix
+    );
+    if (
+      !hasSufficientContext(
+        anchor.exact,
+        normalizedAnchorPrefix,
+        normalizedAnchorSuffix,
+        prefixMatch,
+        suffixMatch
+      )
+    ) {
+      index = map.text.indexOf(anchor.exact, index + 1);
+      continue;
+    }
+
+    const contextScore = prefixMatch + suffixMatch;
     const distancePenalty = Math.min(
       24,
       Math.abs(index - anchor.startHint) / 500
     );
-    const score = contextScore - distancePenalty;
+    const score = contextScore * 100 - distancePenalty;
 
     if (best === null || score > best.score) {
       best = { start: index, end, score };
@@ -150,6 +179,35 @@ export function locateAnchor(
   }
 
   return best;
+}
+
+function hasSufficientContext(
+  exact: string,
+  prefix: string,
+  suffix: string,
+  prefixMatch: number,
+  suffixMatch: number
+): boolean {
+  const availableContext = prefix.length + suffix.length;
+  if (availableContext === 0) {
+    return exact.length >= SAFE_UNCONTEXTUAL_EXACT_LENGTH;
+  }
+
+  const strongPrefix =
+    prefix.length >= MIN_STRONG_SIDE_CONTEXT &&
+    prefixMatch >= Math.min(STRONG_SIDE_CONTEXT, prefix.length);
+  const strongSuffix =
+    suffix.length >= MIN_STRONG_SIDE_CONTEXT &&
+    suffixMatch >= Math.min(STRONG_SIDE_CONTEXT, suffix.length);
+  const combinedMatch =
+    prefixMatch + suffixMatch >=
+    Math.min(COMBINED_CONTEXT, availableContext);
+
+  return strongPrefix || strongSuffix || combinedMatch;
+}
+
+function normalizeContext(value: string): string {
+  return value.replace(/\s+/gu, " ").trim();
 }
 
 export function createRangeFromOffsets(

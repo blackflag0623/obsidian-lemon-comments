@@ -43,7 +43,7 @@ export default class ReadingCommentsPlugin extends Plugin {
   private data: ReadingCommentsData = normalizePluginData(null);
   private controllers = new Map<HTMLElement, RootDecorationController>();
   private rootWatchers = new Map<HTMLElement, RootMutationWatcher>();
-  private renderFrames = new Map<HTMLElement, number>();
+  private renderTimers = new Map<HTMLElement, number>();
   private documentControllers = new Map<
     Document,
     DocumentSelectionController
@@ -159,10 +159,10 @@ export default class ReadingCommentsPlugin extends Plugin {
     }
     this.rootWatchers.clear();
 
-    for (const [root, frame] of this.renderFrames) {
-      (root.ownerDocument.defaultView ?? activeWindow).cancelAnimationFrame(frame);
+    for (const [root, timer] of this.renderTimers) {
+      (root.ownerDocument.defaultView ?? activeWindow).clearTimeout(timer);
     }
-    this.renderFrames.clear();
+    this.renderTimers.clear();
 
     for (const doc of this.documentControllers.keys()) {
       doc.body.setCssProps({ "--reading-comments-color": "" });
@@ -687,14 +687,14 @@ export default class ReadingCommentsPlugin extends Plugin {
 
   private scheduleRootRender(root: HTMLElement, sourcePath: string): void {
     const watcher = this.ensureRootWatcher(root, sourcePath);
-    const existing = this.renderFrames.get(root);
+    const existing = this.renderTimers.get(root);
     const win = root.ownerDocument.defaultView ?? activeWindow;
     if (existing !== undefined) {
-      win.cancelAnimationFrame(existing);
+      win.clearTimeout(existing);
     }
 
-    const frame = win.requestAnimationFrame(() => {
-      this.renderFrames.delete(root);
+    const timer = win.setTimeout(() => {
+      this.renderTimers.delete(root);
       if (!root.isConnected) {
         return;
       }
@@ -713,8 +713,8 @@ export default class ReadingCommentsPlugin extends Plugin {
       } finally {
         watcher.resume();
       }
-    });
-    this.renderFrames.set(root, frame);
+    }, 0);
+    this.renderTimers.set(root, timer);
   }
 
   private ensureRootWatcher(
@@ -1026,7 +1026,7 @@ class DocumentSelectionController extends Component {
 }
 
 class DeferredRootDecorationChild extends MarkdownRenderChild {
-  private frame: number | null = null;
+  private timer: number | null = null;
   private attempts = 0;
 
   constructor(
@@ -1041,19 +1041,19 @@ class DeferredRootDecorationChild extends MarkdownRenderChild {
   }
 
   onunload(): void {
-    if (this.frame === null) {
+    if (this.timer === null) {
       return;
     }
 
     (this.containerEl.ownerDocument.defaultView ?? activeWindow)
-      .cancelAnimationFrame(this.frame);
-    this.frame = null;
+      .clearTimeout(this.timer);
+    this.timer = null;
   }
 
   private schedule(): void {
     const win = this.containerEl.ownerDocument.defaultView ?? activeWindow;
-    this.frame = win.requestAnimationFrame(() => {
-      this.frame = null;
+    this.timer = win.setTimeout(() => {
+      this.timer = null;
       if (this.attach(this.containerEl)) {
         return;
       }
@@ -1062,7 +1062,7 @@ class DeferredRootDecorationChild extends MarkdownRenderChild {
       if (this.attempts < 12) {
         this.schedule();
       }
-    });
+    }, 16);
   }
 }
 
